@@ -1,0 +1,30 @@
+name: PRTesting
+
+# Cntrols when the action will run
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+    types: [opened, synchronize]
+    paths-ignore: ['docs/**', '*', '!pyproject.toml']
+
+concurrency:
+  # New commit on branch cancels running workflows of the same branch
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  environment-setup:
+    uses: ./.github/workflows/environment-setup.yml
+  
+  lint-code:
+    needs: environment-setup
+    uses: ./.github/workflows/lint.yml
+
+  unit-test:
+    needs: environment-setup
+    uses: ./.github/workflows/unit-test.yml
+
+  integration-test:
+    needs: environment-setup
+    uses: ./.github/workflows/integration-test.yml
